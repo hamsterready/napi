@@ -1,5 +1,3 @@
-import 'netinstall.pp'
-
 exec { "apt-get update":
   path => "/usr/bin",
 }
@@ -22,6 +20,11 @@ package { "ncurses-dev":
     require => Exec["apt-get update"],
 }
 
+
+package { "libwww-perl":
+	ensure => present,
+    require => Exec["apt-get update"],
+}
 
 file { "/home/vagrant/bin":
   ensure  => "directory",
