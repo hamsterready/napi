@@ -47,13 +47,3 @@ file { "/home/vagrant/bin/subotage.sh":
     target => "/vagrant/subotage.sh",
 }
 
-
-puppi::netinstall { "bash3":
-  url => "http://ftp.gnu.org/gnu/bash/bash-3.0.tar.gz",
-  source_filename => "bash-3.0.tar.gz",
-  source_filetype => "tgz",
-  source_dirname => "bash",
-  extracted_dir => "bash-3.0",
-  destination_dir => "/tmp",
-  postextract_command => "/tmp/bash-3.0/configure && make && cp -v bash /home/vagrant/bin/bash3"
-}
