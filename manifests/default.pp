@@ -15,6 +15,18 @@ package { "make":
 }
 
 
+package { "gcc-multilib":
+	ensure => present,
+    require => Exec["apt-get update"],
+}
+
+
+package { "g++-multilib":
+	ensure => present,
+    require => Exec["apt-get update"],
+}
+
+
 package { "ncurses-dev":
 	ensure => present,
     require => Exec["apt-get update"],
