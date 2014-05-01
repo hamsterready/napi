@@ -26,12 +26,12 @@ sub prepare_assets {
 	my $assets_path = $path_root . '/' . $assets_tgz;
 	my $url = "https://www.dropbox.com/s/gq2wbfkl7ep1uy8/napi_test_files.tgz";
 
-	croak "assets directory already exists\n" and return if ( -e $assets_path ); 
-	print "Downloading assets\n" and getstore( $url, $assets_path ) 
+	croak "assets directory already exists\n" and return if ( -e $path_root . '/napi_test_files' ); 
+	print "Downloading assets\n" and system("wget $url -O $assets_path")
 		unless ( -e $assets_path );
 
 	my $ae = Archive::Extract->new( archive => $assets_path );
-	$ae->extract() and print "Unpacked assets\n";
+	$ae->extract( to => $path_root ) and print "Unpacked assets\n";
 }
 
 
