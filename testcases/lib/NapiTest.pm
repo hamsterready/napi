@@ -10,6 +10,7 @@ use 5.010;
 use Exporter ();
 use LWP::Simple;
 use Archive::Extract;
+use Carp;
 
 our @EXPORT = qw/
 	prepare_env
@@ -17,21 +18,34 @@ our @EXPORT = qw/
 	prepare_shells
 /;
 
-my $path_root = "/home/vagrant";
+our $path_root = "/home/vagrant";
 
 
 sub prepare_assets {
+	my $assets_tgz = "napi_test_files.tgz";
+	my $assets_path = $path_root . '/' . $assets_tgz;
+	my $url = "https://www.dropbox.com/s/gq2wbfkl7ep1uy8/napi_test_files.tgz";
 
+	croak "assets directory already exists\n" and return if ( -e $assets_path ); 
+	print "Downloading assets\n" and getstore( $url, $assets_path ) 
+		unless ( -e $assets_path );
+
+	my $ae = Archive::Extract->new( archive => $assets_path );
+	$ae->extract() and print "Unpacked assets\n";
 }
 
 
 sub prepare_env {
-
 	my $arch = `/usr/bin/gcc -print-multiarch`;
+	
 	$ENV{LIBRARY_PATH} = '/usr/lib/' . $arch;
 	$ENV{C_INCLUDE_PATH} = '/usr/include/' . $arch;
 	$ENV{CPLUS_INCLUDE_PATH} = '/usr/include/' . $arch;
 
+	print "Exporting...\n";
+	print "LIBRARY_PATH: " . $ENV{LIBRARY_PATH};
+	print "C_INCLUDE_PATH: " . $ENV{C_INCLUDE_PATH};
+	print "CPLUS_INCLUDE_PATH: " . $ENV{CPLUS_INCLUDE_PATH};
 }
 
 
@@ -42,7 +56,7 @@ sub set_old_gcc {
 
 	if (shift) {
 		print "Exporting path to include local gcc\n";
-		$ENV{PATH} = '/home/vagrant/gcc-3.0/bin:' . $orig_path;
+		$ENV{PATH} = $path_root . '/' . 'gcc-3.0/bin:' . $orig_path;
 		$ENV{LIBRARY_PATH} = '/usr/lib/i386-linux-gnu:' . $orig_libs;
 		$ENV{C_INCLUDE_PATH} = '/usr/include/i386-linux-gnu:' . $orig_cinc;
 	}
@@ -84,7 +98,7 @@ sub prepare_shells {
 		bash-4.3.tar.gz
 		/;
 
-	die "Shell Source directory already exists - assuming that all sources already have been downloaded and compiled\n"
+	carp "Shell Source directory already exists - assuming that all sources already have been downloaded and compiled\n" and return
 		if ( -e $shell_src_path && -d $shell_src_path );
 	
 	mkdir $shell_src_path;
@@ -109,16 +123,12 @@ sub prepare_shells {
 
 		# build it
 		print ("Building...");
-		system ('cd ' . $dir_path . ' && ./configure && make');
+		system ('cd ' . $dir_path . ' && ./configure && make 2>&1 | tee compilation.log');
 
 		symlink $dir_path . '/bash', $shell_bin_path . '/' . $dir_name;
 
 		$cnt++;
 	}
-
-
-		
-
 }
 
 1;

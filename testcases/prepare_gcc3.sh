@@ -1,6 +1,14 @@
 #!/bin/bash
 
-if [[ -e /home/vagrant/gcc-3.0 ]]; then
+path_root=""
+
+if [[ -z "$1" ]]; then
+	echo "prepare_gcc3.sh <installation_root_path>"
+	exit
+fi
+path_root="$1"
+
+if [[ -e "${path_root}/gcc-3.0" ]]; then
 	echo "GCC3 already installed. Nothing to do. Skipping"
 	exit
 fi
@@ -25,7 +33,7 @@ fi
 mkdir -p gcc-build
 cd gcc-build
 
-../gcc-3.0/configure --prefix=/home/vagrant/gcc-3.0 --enable-shared --enable-languages=c --disable-libgcj --disable-java-net --disable-static-libjava
+../gcc-3.0/configure --prefix="${path_root}/gcc-3.0" --enable-shared --enable-languages=c --disable-libgcj --disable-java-net --disable-static-libjava
 make 2>&1 | tee compilation.log
 sudo make install
 rm -rf gcc-build
