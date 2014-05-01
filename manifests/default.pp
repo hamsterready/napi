@@ -1,5 +1,3 @@
-import 'netinstall.pp'
-
 exec { "apt-get update":
   path => "/usr/bin",
 }
@@ -11,7 +9,25 @@ package { "busybox":
 }
 
 
+package { "libssl-dev":
+	ensure => present,
+    require => Exec["apt-get update"],
+}
+
+
 package { "make":
+	ensure => present,
+    require => Exec["apt-get update"],
+}
+
+
+package { "bison":
+	ensure => present,
+    require => Exec["apt-get update"],
+}
+
+
+package { "flex":
 	ensure => present,
     require => Exec["apt-get update"],
 }
@@ -68,16 +84,5 @@ file { "/home/vagrant/bin/napi.sh":
 file { "/home/vagrant/bin/subotage.sh":
 	ensure => "link",
     target => "/vagrant/subotage.sh",
-}
-
-
-puppi::netinstall { "gcc3":
-  url => "http://gcc.igor.onlinedirect.bg/old-releases/gcc-3/gcc-3.0.tar.bz2",
-  source_filename => "gcc-3.0.tar.bz2",
-  source_filetype => ".bz2",
-  source_dirname => "gcc",
-  extracted_dir => "gcc-3.0",
-  destination_dir => "/tmp",
-  postextract_command => "export LIBRARY_PATH=/usr/lib/$(gcc -print-multiarch) && export C_INCLUDE_PATH=/usr/include/$(gcc -print-multiarch) && export CPLUS_INCLUDE_PATH=/usr/include/$(gcc -print-multiarch) && /tmp/gcc-3.0/configure --enable-shared --enable-languages=c  --disable-libgcj --disable-java-net --disable-static-libjava && make 2>&1 | tee compilation.log"
 }
 

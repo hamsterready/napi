@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [[ -e /usr/local/bin/gcc-3.0 ]]; then
-	echo "GCC3 already installed. Nothing to do"
+if [[ -e /home/vagrant/gcc-3.0 ]]; then
+	echo "GCC3 already installed. Nothing to do. Skipping"
 	exit
 fi
 

@@ -5,22 +5,54 @@ package NapiTest;
 use strict;
 use warnings;
 $|++;
+use 5.010;
 
 use Exporter ();
 use LWP::Simple;
 use Archive::Extract;
 
 our @EXPORT = qw/
+	prepare_env
 	prepare_assets
 	prepare_shells
-	generate_tree
 /;
 
 my $path_root = "/home/vagrant";
 
+
 sub prepare_assets {
 
 }
+
+
+sub prepare_env {
+
+	my $arch = `/usr/bin/gcc -print-multiarch`;
+	$ENV{LIBRARY_PATH} = '/usr/lib/' . $arch;
+	$ENV{C_INCLUDE_PATH} = '/usr/include/' . $arch;
+	$ENV{CPLUS_INCLUDE_PATH} = '/usr/include/' . $arch;
+
+}
+
+
+sub set_old_gcc {
+	state $orig_path = $ENV{PATH};
+	state $orig_libs = $ENV{LIBRARY_PATH} // '';
+	state $orig_cinc = $ENV{C_INCLUDE_PATH} // '';
+
+	if (shift) {
+		print "Exporting path to include local gcc\n";
+		$ENV{PATH} = '/home/vagrant/gcc-3.0/bin:' . $orig_path;
+		$ENV{LIBRARY_PATH} = '/usr/lib/i386-linux-gnu:' . $orig_libs;
+		$ENV{C_INCLUDE_PATH} = '/usr/include/i386-linux-gnu:' . $orig_cinc;
+	}
+	else {
+		print "Exporting default path\n";
+		$ENV{PATH} = $orig_path;
+		prepare_env();
+	}
+}
+
 
 sub prepare_shells {
 
@@ -42,12 +74,10 @@ sub prepare_shells {
 		bash-2.05.tar.gz
 		bash-2.05a.tar.gz
 		bash-2.05b.tar.gz
-		bash-3.0.16.tar.gz
 		bash-3.0.tar.gz
 		bash-3.1.tar.gz
 		bash-3.2.48.tar.gz
 		bash-3.2.tar.gz
-		bash-4.0-rc1.tar.gz
 		bash-4.0.tar.gz
 		bash-4.1.tar.gz
 		bash-4.2.tar.gz
@@ -61,6 +91,8 @@ sub prepare_shells {
 	mkdir $shell_bin_path;
 	STDOUT->autoflush(1);
 
+	my $cnt = 0;
+
 	foreach (@versions) {
 
 		my ($version) = m/^bash-(.*)?\.tar\.gz$/;
@@ -68,9 +100,12 @@ sub prepare_shells {
 		my $tgz_path = $shell_src_path . '/' . $_;
 		my $dir_path = $shell_src_path . '/' . $dir_name;
 
-		print "Downloading shell: [$_]\n" and getstore( $url . '/' . $_, $tgz_path );
+		print "Downloading shell: [$_]\n" and getstore( $url . '/' . $_, $tgz_path ) unless ( -e $tgz_path );
+		
 		my $ae = Archive::Extract->new( archive => $shell_src_path . '/' . $_ );
 		$ae->extract( to => $shell_src_path ) and print "Unpacked [$_]\n";
+
+		set_old_gcc( $cnt < 10 );
 
 		# build it
 		print ("Building...");
@@ -78,16 +113,12 @@ sub prepare_shells {
 
 		symlink $dir_path . '/bash', $shell_bin_path . '/' . $dir_name;
 
+		$cnt++;
 	}
 
 
 		
 
 }
-
-sub generate_tree {
-	
-}
-
 
 1;
